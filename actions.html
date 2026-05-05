@@ -25,12 +25,15 @@
 
   <section class="card">
     <label>Action ID <input id="actionId"></label>
-    <div style="display:flex;gap:6px">
-      <button id="implement">Implement</button>
-      <button id="suspend">Suspend</button>
-      <button id="resume">Resume</button>
-      <button id="complete">Complete</button>
-      <button id="abandon">Abandon</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button id="submitForApproval" style="background:#e76f51">Submit For Approval</button>
+      <button id="approve" style="background:#2a9d8f">Approve</button>
+      <button id="reject" style="background:#f4a261">Reject</button>
+      <button id="suspend" style="background:#e76f51">Suspend</button>
+      <button id="resume" style="background:#2a9d8f">Resume</button>
+      <button id="complete" style="background:#06a77d">Complete</button>
+      <button id="reopen" style="background:#d62828">Reopen</button>
+      <button id="abandon" style="background:#666">Abandon</button>
     </div>
     <div id="transitionResult"></div>
   </section>
@@ -86,9 +89,12 @@
       const json = await res.json(); document.getElementById('transitionResult').innerText = JSON.stringify(json,null,2);
     }catch(e){ document.getElementById('transitionResult').innerText = 'Error: '+e.message }
   }
-  document.getElementById('implement').onclick = ()=>call('implement');
+  document.getElementById('submitForApproval').onclick = ()=>call('submit-for-approval');
+  document.getElementById('approve').onclick = ()=>call('approve');
+  document.getElementById('reject').onclick = ()=>call('reject');
   document.getElementById('resume').onclick = ()=>call('resume');
   document.getElementById('complete').onclick = ()=>call('complete');
+  document.getElementById('reopen').onclick = ()=>call('reopen');
   document.getElementById('abandon').onclick = ()=>call('abandon');
   document.getElementById('suspend').onclick = async ()=>{
     const id = document.getElementById('actionId').value.trim(); if(!id){ alert('action id required'); return }
