@@ -5,35 +5,61 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Accounts</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0}
-    header{background:#264653;color:#fff;padding:12px}
-    main{padding:16px}
-    .card{border:1px solid #ddd;padding:12px;margin:8px 0;border-radius:6px}
-    input{width:100%;padding:8px;margin:6px 0}
-    button{padding:8px 12px;background:#2a9d8f;color:#fff;border:0;border-radius:4px}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid #eee;padding:8px}
+    :root{color-scheme:light;--bg:#f3efe7;--panel:#fffaf3;--text:#1f1f1f;--muted:#6b6257;--accent:#145c7a;--accent-2:#d97706;--line:#e7dccb}
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:linear-gradient(180deg,#efe6d8 0%,#f8f5ef 100%);color:var(--text)}
+    header{background:linear-gradient(135deg,#163b4d,#1f6f8b);color:#fff;padding:20px 16px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+    main{padding:16px;max-width:1100px;margin:0 auto}
+    .card{background:var(--panel);border:1px solid var(--line);padding:16px;margin:12px 0;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.05)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+    label{display:block;font-size:14px;font-weight:700;color:var(--muted)}
+    input,select{width:100%;padding:10px 12px;margin-top:6px;border:1px solid #d8cbb8;border-radius:10px;background:#fff}
+    button{padding:10px 14px;background:var(--accent);color:#fff;border:0;border-radius:10px;cursor:pointer;font-weight:700}
+    button.secondary{background:var(--accent-2)}
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;overflow:hidden}
+    th,td{border-bottom:1px solid #efe4d6;padding:10px 8px;text-align:left;vertical-align:top}
+    th{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    tr:hover td{background:#fffdf8}
+    .status{margin-top:10px;color:var(--muted)}
+    a{color:var(--accent)}
   </style>
 </head>
 <body>
 <header><h2 style="margin:0">Accounts</h2></header>
 <main>
   <section class="card">
-    <button id="refresh">Refresh Balances</button>
-    <table><thead><tr><th>Name</th><th>Kind</th><th>Resource</th><th>Balance</th><th>Overconsumed</th><th>Account ID</th></tr></thead><tbody id="balances"></tbody></table>
+    <div class="toolbar">
+      <button id="refresh" class="secondary">Refresh Balances</button>
+      <div class="status">Entry filters let you view only consumable or asset-backed records.</div>
+    </div>
+    <table>
+      <thead><tr><th>Name</th><th>Kind</th><th>Resource</th><th>Balance</th><th>Overconsumed</th><th>Account ID</th></tr></thead>
+      <tbody id="balances"></tbody>
+    </table>
   </section>
 
   <section class="card">
-    <label>Account ID <input id="acctId"></label>
-    <button id="loadEntries">Load Entries</button>
+    <div class="grid">
+      <label>Account ID <input id="acctId" placeholder="Paste an account UUID"></label>
+      <label>Kind Filter <select id="entryKind"><option value="">All</option><option value="CONSUMABLE">CONSUMABLE</option><option value="ASSET">ASSET</option></select></label>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button id="loadEntries">Load Entries</button>
+      <div class="status">Uses the optional kind query parameter.</div>
+    </div>
     <pre id="entriesView"></pre>
   </section>
 
   <section class="card">
-    <label>Deposit Account ID <input id="depositAcctId"></label>
-    <label>Amount <input id="depositAmount" type="number" step="0.01" min="0"></label>
-    <button id="depositBtn">Deposit</button>
-    <div id="depositResult"></div>
+    <div class="grid">
+      <label>Deposit Account ID <input id="depositAcctId" placeholder="Target account UUID"></label>
+      <label>Amount <input id="depositAmount" type="number" step="0.01" min="0"></label>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button id="depositBtn">Deposit</button>
+      <div id="depositResult" class="status"></div>
+    </div>
   </section>
   <a href="index.html">Back</a>
 </main>
@@ -49,7 +75,10 @@
   }
   document.getElementById('loadEntries').onclick = async ()=>{
     const id = document.getElementById('acctId').value.trim(); if(!id){ alert('id required'); return }
-    try{ const res = await fetch(API_BASE + '/api/accounts/' + encodeURIComponent(id) + '/entries'); const data = await res.json(); document.getElementById('entriesView').innerText = JSON.stringify(data,null,2);}catch(e){ document.getElementById('entriesView').innerText = 'Error: '+e.message }
+    const kind = document.getElementById('entryKind').value;
+    const url = new URL(API_BASE + '/api/accounts/' + encodeURIComponent(id) + '/entries');
+    if(kind){ url.searchParams.set('kind', kind); }
+    try{ const res = await fetch(url.toString()); const data = await res.json(); document.getElementById('entriesView').innerText = JSON.stringify(data,null,2);}catch(e){ document.getElementById('entriesView').innerText = 'Error: '+e.message }
   }
 
   document.getElementById('depositBtn').onclick = async ()=>{
